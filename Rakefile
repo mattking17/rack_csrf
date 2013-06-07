@@ -28,9 +28,9 @@ Jeweler::Tasks.new do |gem|
   gem.summary = 'Anti-CSRF Rack middleware'
   gem.description = 'Anti-CSRF Rack middleware'
   gem.license = 'MIT'
-  gem.authors = 'Emanuele Vicentini'
-  gem.email = 'emanuele.vicentini@gmail.com'
-  gem.homepage = 'https://github.com/baldowl/rack_csrf'
+  gem.authors = 'Emanuele Vicentini, Matt King'
+  gem.email = 'emanuele.vicentini@gmail.com, mking@mking.me'
+  gem.homepage = 'https://github.com/mattking17/rack_csrf'
   gem.rubyforge_project = 'rackcsrf'
   gem.required_ruby_version = '>= 1.8.7'
   # dependencies defined in Gemfile

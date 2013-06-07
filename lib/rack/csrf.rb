@@ -32,15 +32,21 @@ module Rack
       end
       self.class.token(env)
       req = Rack::Request.new(env)
-      untouchable = skip_checking(req) ||
-        !@http_methods.include?(req.request_method) ||
-        req.params[self.class.field] == env['rack.session'][self.class.key] ||
-        req.env[self.class.rackified_header] == env['rack.session'][self.class.key]
-      if untouchable
-        @app.call(env)
-      else
-        raise InvalidCsrfToken if @raisable
-        [403, {'Content-Type' => 'text/html', 'Content-Length' => '0'}, []]
+      untouchable = skip_checking(req) || !@http_methods.include?(req.request_method)
+
+			if untouchable
+				@app.call(env)
+			else
+				if (req.params[self.class.field] == env['rack.session'][self.class.key] ||
+						req.env[self.class.rackified_header] == env['rack.session'][self.class.key])
+					self.class.reset_token(env)
+					status, headers, response = @app.call(env)
+					headers[self.class.unrackified_header] = env[self.class.unrackified_header]
+					[status, headers, response]
+				else
+					raise InvalidCsrfToken if @raisable
+					[403, {'Content-Type' => 'text/html', 'Content-Length' => '0'}, []]
+				end
       end
     end
 
@@ -54,6 +60,11 @@ module Rack
 
     def self.header
       @@header
+    end
+
+    def self.reset_token(env)
+			env['rack.session'].delete(key)
+			env[unrackified_header] = token(env)
     end
 
     def self.token(env)
@@ -83,6 +94,10 @@ module Rack
     # Returns the custom header's name adapted to current standards.
     def self.rackified_header
       "HTTP_#{@@header.gsub('-','_').upcase}"
+    end
+
+    def self.unrackified_header
+      @@header.gsub('_','-').downcase
     end
 
     # Returns +true+ if the given request appears in the <b>skip list</b> or

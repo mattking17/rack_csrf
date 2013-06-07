@@ -51,6 +51,28 @@ describe Rack::Csrf do
     it      { should == Rack::Csrf.method(:header) }
   end
 
+  describe 'reset_token(env)' do
+    let(:env) { {'rack.session' => {}} }
+
+    context 'when the session does not already contain the token' do
+      it 'should reset the token, generate a new one, and return the token in the headers' do
+        env['rack.session'].should be_empty
+				env[Rack::Csrf.unrackified_header].should be_nil
+
+        token = Rack::Csrf.token(env)
+        token.should == env['rack.session'][Rack::Csrf.key]
+
+				new_token = Rack::Csrf.reset_token(env)
+				new_token.should == env['rack.session'][Rack::Csrf.key]
+				env[Rack::Csrf.unrackified_header].should == new_token
+
+        token = Rack::Csrf.token(env)
+				token.should == new_token
+      end
+    end
+
+  end
+
   describe 'token(env)' do
     let(:env) { {'rack.session' => {}} }
 
